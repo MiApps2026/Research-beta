@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Analyzer | Intelligent analysis of scientific literature (AI Powered)</title>    
+    <meta name="description" content="Free AI tool to analyze papers and scientific literature. Talk to your paper using the chatbot. Drag & drop PDF papers to get instant research schema, summary, main findings, and much more.">    
+    <meta name="keywords" content="research analyzer, ai paper summary, scientific chat">    
+    <meta name="author" content="Research Analyzer Tool">    
+    <meta name="robots" content="index, follow">    
+    <meta name="google-site-verification" content="Hy9ctXF5gOKvDwMMz4gqYsZzsPGlecGzSEu03nGZ1gM"/>
+
+    <link rel="canonical" href="https://researchanalyzer.kit62.com/">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Marked (Markdown) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Mammoth.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+    <!-- SVG Pan Zoom -->
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Umami Analytics -->
+    <script 
+        defer 
+        src="https://cloud.umami.is/script.js" 
+        data-website-id="d5aa7366-96eb-4659-b905-98b848acf965">
+    </script>
+
+
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 850: '#1e293b', 900: '#0f172a' }
+                    },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    boxShadow: {
+                        'card': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'hard': '4px 4px 0px 0px rgba(0,0,0,0.1)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; background-color: #f1f5f9; color: #0f172a; }
+        .katex { font-size: 1.1em; font-weight: 500; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #e2e8f0; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-enter { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        .loader {
+            width: 24px; 
+            height: 24px; 
+            border: 4px solid #e2e8f0; 
+            border-top-color: #4f46e5; 
+            border-radius: 50%; 
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Typography overrides for impact */
+        .prose h3 { margin-top: 1.5em; font-weight: 800; color: #1e293b; }
+        .prose p { margin-bottom: 1em; line-height: 1.7; font-size: 1.125rem; text-align: justify; } /* Texto base más grande */
+        .prose ul { padding-left: 1.5em; }
+        .prose li { margin-bottom: 0.5em; }
+        
+        /* Mermaid Container Styles */
+        #mermaid-chart { 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            overflow: hidden; 
+        }
+        #mermaid-chart svg { 
+            height: 100%; 
+            width: 100%; 
+            min-height: 400px;
+        }
+    </style>
+
+    <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Research Analyzer",
+        "operatingSystem": "Web Browser (Chrome, Edge, Firefox, Safari)",
+        "applicationCategory": "ResearcherApplication",
+        "description": "Open Source AI tool for analyzing scientific literature locally. Summarize papers, extract findings, and chat with PDFs without server uploads.",
+        "url": "https://researchanalyzer.kit62.com/",
+        
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+        },
+        "featureList": [
+            "Local PDF Analysis (Privacy First)",
+            "Automatic Summarization",
+            "Key Findings Extraction",
+            "Multi-language Support (ES, EN, FR, DE, PT)",
+            "Mermaid.js Diagram Generation",
+            "Chat with your pdf",
+            "Export Reports to HTML"
+        ],
+        "softwareRequirements": "Google Gemini API Key (Free Tier supported)",
+        "author": {
+            "@type": "Person",
+            "name": "PhD. Analyzer"            
+        }
+        }
+    </script>
+
+    <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [{
+            "@type": "Question",
+            "name": "Is Research Analyzer completely free?",
+            "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Research Analyzer is completely free tool running locally in your browser. No subscriptions, usage limits or hidden fees."
+            }
+        }, {
+            "@type": "Question",
+            "name": "Is my research data private?",
+            "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely. We use a local-first architecture. Your PDFs are processed in the browser and they are opnly used as the context to ask the AI model for your report"
+            }
+        }, {
+            "@type": "Question",
+            "name": "Can it analyze papers in other languages?",
+            "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, it supports multi-language processing including Spanish, French, and German, extracting findings regardless of the source language. However, results will appear in English"
+            }
+        }, {
+            "@type": "Question",
+            "name": "What specific data can it extract?",
+            "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It specializes in research papers data extraction, including summary, insights, prediction of future work, gaps and much more."
+            }
+        }]
+        }
+    </script>
+
+</head>
+<!-- ESTRUCTURA MODIFICADA: Ancho 86% centrado (mx-auto) - 7% margen cada lado -->
+<body class="text-slate-900 min-h-screen flex flex-col pt-0 pb-8 bg-[#f1f5f9]">
+
+    <!-- Header -->
+<header class="sticky top-0 z-50 w-full bg-[#f1f5f9]/95 backdrop-blur-md border-b-4 border-indigo-600 mb-8 py-3 px-4 md:px-8 flex flex-col md:flex-row justify-between items-center gap-4 animate-enter transition-all duration-300 shadow-sm">            
+    
+    <!-- Bloque Izquierdo: Flujo de Texto Continuo -->
+    <div class="flex flex-col justify-center w-full md:w-auto max-w-4xl">
+        
+        <div class="flex flex-wrap items-baseline gap-3 mb-1">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 leading-none">
+                RESEARCH <span class="text-indigo-600">Analyzer</span>
+            </h1>
+            
+            <h2 class="text-lg md:text-xl font-medium text-slate-700">
+                Intelligent analysis of scientific literature
+            </h2>
+        </div>
+        
+        <p class="text-sm md:text-base leading-snug line-clamp-2 text-slate-700">
+            <span id="paperTitle" class="font-bold text-slate-900 transition-colors duration-500"></span>
+
+            <span id="paperMeta" class="hidden transition-opacity duration-500">
+                <span class="mx-2 text-slate-300">|</span>
+                <span id="paperAuthors" class="text-xs font-mono font-medium text-slate-500 uppercase tracking-tight"></span>
+            </span>
+        </p>
+
+        <a id="paperDoi" href="#" target="_blank" class="hidden items-center gap-1 mt-1.5 text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:underline w-fit transition-colors">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            <span class="doi-text">DOI...</span>
+        </a>
+    </div>
+    
+    <div class="flex items-center gap-4">
+        <!-- Save Button (Initially Hidden) -->
+        <button id="saveBtn" onclick="exportReport()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md items-center gap-2">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+            <span>Save</span>
+        </button>
+
+        <div id="mainApiInput" class="flex items-center gap-4 bg-white p-4 rounded-xl border-2 border-slate-200 shadow-hard w-full md:w-auto transition-transform hover:-translate-y-1">
+            <svg class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+            <input type="password" id="apiKey" placeholder="Your Gemini API Key" class="outline-none text-sm w-full md:w-72 bg-transparent font-mono text-slate-800 placeholder-slate-400 font-bold">
+            <button onclick="toggleVisibility()" class="text-slate-400 hover:text-indigo-600 transition-colors text-sm font-bold">VIEW</button>
+        </div>
+    </div>
+ </header>
+
+    <!-- Main Container -->
+<main class="w-full lg:w-[86%] mx-auto px-4 flex-grow flex flex-col gap-10">
+
+      <div id="inputZone" class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-enter" style="animation-delay: 0.1s;">
+    
+            <div class="flex flex-col h-full gap-6">
+                
+                   <div id="dropArea" class="h-64 border-4 border-dashed border-slate-300 rounded-3xl flex flex-col items-center justify-center bg-white hover:bg-indigo-50 hover:border-indigo-500 transition-all duration-300 cursor-pointer relative group shadow-sm shrink-0">
+                        <input type="file" id="fileInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".pdf,.docx,.doc,.txt">
+                        <div class="text-center pointer-events-none group-hover:scale-110 transition-transform duration-300">
+                            <div class="bg-indigo-100 p-4 rounded-full inline-block mb-3 shadow-inner">
+                                <svg class="h-10 w-10 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                            </div>
+                            <p class="text-xl font-extrabold text-slate-800">Drop your paper</p>
+                            <p class="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wide">PDF FILE</p>
+                        </div>
+                    </div>
+
+                <div class="bg-white border-2 border-indigo-200 rounded-3xl shadow-xl p-5 border text-slate-600 text-sm leading-relaxed flex flex-col justify-center">
+                    <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-2 text-base">
+                        <svg class="w-6 h-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                        Universal Research Tool
+                    </h3>
+                    <p class="mb-3">
+                        Upload <strong>any scientific paper (PDF)</strong> to instantly generate:
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 ml-1 text-slate-500">
+                        <li><strong>Smart Summaries:</strong> Break down complex papers into valuable outcome.</li>
+                        <li><strong>Key Findings:</strong> Isolate the main valuable insights.</li>
+                        <li><strong>Future Research Lines:</strong> Identify gaps and predict future work automatically.</li>
+                        <li><strong>Interactive Chat:</strong> Ask specific questions about the document's content.</li>
+                    </ul>
+                    <p>
+                        <strong>Privacy First:</strong> Analysis runs locally in your browser. Your papers are never stored on a server.
+                    </p>
+                    <p>
+                        You just need a free google api key. Get it on
+                        <a href="https://aistudio.google.com/api-keys" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="text-blue-600 hover:text-blue-800 underline inline-flex items-center gap-1">
+                            https://aistudio.google.com/api-keys
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </a>
+                    </p>
+                    <p class="text-[12px] text-gray-500 mt-1">(Use any personal gmail account)</p>         
+                </div>
+
+             
+                <div id="errorMsg" class="hidden bg-red-100 border-l-8 border-red-600 text-red-900 p-4 rounded-r-lg text-base font-medium shadow-md"></div>
+            </div>
+
+            <div class="flex flex-col h-full gap-4">
+                
+                <div class="bg-white border-2 border-indigo-200 rounded-3xl shadow-xl overflow-hidden h-[450px] flex flex-col shrink-0">
+                    <div class="px-6 py-4 bg-indigo-500 border-b border-indigo-800 flex justify-between items-center shadow-sm shrink-0">
+                        <span class="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                            <span class="text-emerald-300 animate-pulse">●</span> Process status
+                        </span>
+                        <span id="statusIndicator" class="h-3 w-3 rounded-full bg-indigo-300 shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-colors duration-300"></span>
+                    </div>
+                    
+                    <div id="activityLog" class="flex-grow overflow-y-auto p-6 space-y-4 text-xs font-mono bg-gradient-to-b from-indigo-100 to-indigo-50 text-indigo-900">
+                        <div class="flex items-start gap-3 opacity-60">
+                            <span class="text-indigo-600 font-bold">></span>
+                            <span class="font-medium">System ready. Waiting for a file to blow your mind...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="successReveal" class="hidden animate-enter">
+                    <button onclick="revealDashboard()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg hover:shadow-indigo-500/40 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 text-lg border-b-4 border-indigo-800 active:border-b-0 active:translate-y-1">
+                        <span>OPEN REPORT</span>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="lg:col-span-2 animate-enter" style="animation-delay: 0.2s;">
+                <div class="bg-white border-2 border-slate-200 rounded-3xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <details class="group">
+                        <summary class="flex justify-between items-center p-5 cursor-pointer list-none bg-slate-50 hover:bg-indigo-50 transition-colors select-none">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span class="font-bold text-slate-700 uppercase tracking-wide text-sm">Privacy, Data Security & FAQ</span>
+                            </div>
+                            <span class="transition-transform duration-300 group-open:rotate-180 text-indigo-400">
+                                <svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                            </span>
+                        </summary>
+                        
+                        <div class="p-6 border-t border-slate-200 text-sm text-slate-600 grid grid-cols-1 md:grid-cols-3 gap-8 bg-white">
+                            
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    Data Privacy & Google Gemini
+                                </h4>
+                                <p class="leading-relaxed text-justify">
+                                    Your PDF content is sent <strong>directly</strong> from your browser to Google's Gemini API for analysis. We (Research Analyzer) have <strong>no servers</strong>, no database, and we never see, store, or share your research. The interaction is strictly 1-to-1 between You and Google.
+                                </p>
+                            </div>
+
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    100% Free & Open Source
+                                </h4>
+                                <p class="leading-relaxed text-justify">
+                                    This tool is free to use with your own Google API Key (which has a generous free tier). Research Analyzer is an alternative to tools like ChatPDF or Humata, running 100% locally.
+                                </p>
+                            </div>
+
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>
+                                    Multi-language Support
+                                </h4>
+                                <p class="leading-relaxed text-justify">
+                                    While the interface is in English (the language of science), the AI engine understands papers in <strong>any language</strong>. You can also chat with your paper in any language you prefer.
+                                </p>
+                            </div>
+
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+
+
+        </div>
+
+
+        <!-- DASHBOARD RESULTADOS -->
+        <div id="dashboard" class="hidden flex-col gap-8 pb-24 w-full animate-enter">
+            <!-- TOP SECTION: CHART (60%) + SUMMARY (40%) -->
+            <div class="flex flex-col xl:flex-row gap-8 w-full">
+                <!-- 60% Left: FLOWCHART SECTION -->
+                <section class="w-full xl:w-[60%] bg-white p-6 rounded-3xl shadow-card border-t-8 border-indigo-600 flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="p-3 bg-indigo-100 rounded-xl">
+                                <svg class="w-8 h-8 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                            </div>
+                            <h2 class="text-2xl font-extrabold text-slate-900">Research Architecture</h2>
+                        </div>
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">SCROLL / DRAG</span>
+                    </div>
+                    <div class="w-full bg-slate-50 rounded-2xl border-2 border-slate-200 p-2 relative h-[750px] overflow-hidden group shadow-inner">
+                         <div id="mermaid-loading" class="flex flex-col items-center justify-center absolute inset-0 bg-slate-50 z-20 transition-opacity">
+                            <div class="loader mb-4 w-10 h-10 border-4 border-indigo-200 border-t-indigo-600"></div>
+                            <span class="text-sm text-indigo-800 font-bold animate-pulse">Deciphering research logic...</span>
+                        </div>
+                        <div id="mermaid-error" class="hidden flex-col items-center justify-center absolute inset-0 bg-red-50 z-20 text-center p-4">
+                            <span class="text-red-500 text-4xl mb-2">⚠</span>
+                            <p class="text-red-800 font-bold mb-2">Visual error. Please try again.</p>
+                            <pre id="mermaid-error-code" class="text-xs text-red-600 font-mono mt-2 bg-red-100 p-2 rounded max-w-full overflow-auto"></pre>
+                        </div>
+                        <div id="mermaid-chart"></div>
+                        
+                        <!-- BOTONES MERMAID -->
+                        <div class="absolute bottom-4 left-4 flex gap-2 z-30">
+                            <!-- Botón Regenerar (Mantenido) -->
+                            <button id="regenDiagramBtn" onclick="regenerateDiagram()" class="bg-white border-2 border-slate-200 shadow-md hover:border-emerald-500 hover:text-emerald-600 text-slate-500 font-bold py-2 px-3 rounded-lg transition-all text-xs flex items-center gap-2" title="Volver a generar el diagrama">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                REGENERATE
+                            </button>
+                            
+                            <!-- Botón Reset Vista ELIMINADO -->
+                        </div>
+                    </div>
+                </section>
+                <!-- 40% Right: SÍNTESIS EJECUTIVA -->
+                <section class="w-full xl:w-[40%] bg-white p-6 rounded-3xl shadow-card border-t-8 border-slate-700 flex flex-col h-[750px] xl:h-auto"> 
+                    <div class="flex items-center gap-4 mb-6 border-b-2 border-slate-100 pb-5 shrink-0">
+                        <div class="p-3 bg-slate-100 rounded-xl">
+                            <svg class="w-7 h-7 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-slate-900">SUMMARY</h2>
+                    </div>
+                    <div class="flex-grow overflow-y-auto pr-2 custom-scrollbar">
+                        <div id="summaryContent" class="prose prose-lg prose-slate max-w-none text-slate-700 font-medium text-justify"></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- MIDDLE SECTION: Hallazgos Clave -->
+            <section class="w-full bg-white p-8 rounded-3xl shadow-card border-t-8 border-emerald-500">
+                <div class="flex items-center gap-4 mb-8 border-b-2 border-slate-100 pb-5">
+                    <div class="p-3 bg-emerald-100 rounded-xl">
+                        <svg class="w-7 h-7 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-slate-900">ESSENTIAL INSIGHTS</h2>
+                </div>
+                <ul id="keyFindingsList" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-lg font-medium text-slate-800 text-justify"></ul>
+            </section>
+
+            <!-- DAFO -->
+            <section class="bg-white p-8 rounded-3xl shadow-card">
+                <h2 class="text-2xl font-extrabold text-slate-900">Strategic Research Matrix (SWOT applied to science)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Fortalezas -->
+                    <div class="bg-emerald-50 p-6 rounded-2xl border-2 border-emerald-100 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-emerald-200 p-3 rounded-xl">
+                                <svg class="w-8 h-8 text-emerald-800" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 6a3 3 0 10-6 0 3 3 0 006 0zM17 11.23a4.96 4.96 0 00-3.5 1.27 4.96 4.96 0 00-3.5-1.27A5.02 5.02 0 005 16.24V21h14v-4.76a5.02 5.02 0 00-2-4.01z"/></svg>
+                            </div>
+                            <h4 class="text-emerald-900 font-black text-xl uppercase">Core assets</h4>
+                        </div>
+                        <ul id="swotStrengths" class="space-y-3 text-base text-emerald-900 font-semibold text-justify"></ul>
+                    </div>
+                    <!-- Debilidades -->
+                    <div class="bg-rose-50 p-6 rounded-2xl border-2 border-rose-100 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-rose-200 p-3 rounded-xl">
+                                <svg class="w-8 h-8 text-rose-800" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                            </div>
+                            <h4 class="text-rose-900 font-black text-xl uppercase">Limitations</h4>
+                        </div>
+                        <ul id="swotWeaknesses" class="space-y-3 text-base text-rose-900 font-semibold text-justify"></ul>
+                    </div>
+                    <!-- Oportunidades -->
+                    <div class="bg-blue-50 p-6 rounded-2xl border-2 border-blue-100 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-blue-200 p-3 rounded-xl">
+                                <svg class="w-8 h-8 text-blue-800" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                            <h4 class="text-blue-900 font-black text-xl uppercase">Prospects</h4>
+                        </div>
+                        <ul id="swotOpportunities" class="space-y-3 text-base text-blue-900 font-semibold text-justify"></ul>
+                    </div>
+                    <!-- Amenazas -->
+                    <div class="bg-amber-50 p-6 rounded-2xl border-2 border-amber-100 hover:shadow-lg transition-shadow">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-amber-200 p-3 rounded-xl">
+                                <svg class="w-8 h-8 text-amber-800" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                            </div>
+                            <h4 class="text-amber-900 font-black text-xl uppercase">External constraints</h4>
+                        </div>
+                        <ul id="swotThreats" class="space-y-3 text-base text-amber-900 font-semibold text-justify"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Predicción de Líneas -->
+            <section class="bg-white p-8 rounded-3xl shadow-card border-t-8 border-sky-500">
+                <div class="flex items-center gap-4 mb-8 border-b-2 border-slate-100 pb-5">
+                    <div class="p-3 bg-sky-100 rounded-xl">
+                        <svg class="w-7 h-7 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Plausible future trajectories</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="p-6 bg-sky-50 rounded-2xl border-2 border-sky-100 h-full">
+                        <h3 class="font-black text-sky-900 mb-6 flex items-center gap-3 text-xl uppercase tracking-wider">
+                            <span class="text-sky-500 text-3xl">↳</span> Linear projections
+                        </h3>
+                        <ul id="futureTypical" class="space-y-3 text-base font-semibold text-slate-700 text-justify"></ul>
+                    </div>
+                    <div class="p-6 bg-purple-50 rounded-2xl border-2 border-purple-100 h-full">
+                        <h3 class="font-black text-purple-900 mb-6 flex items-center gap-3 text-xl uppercase tracking-wider">
+                            <span class="text-purple-600 text-3xl">⚡</span> Divergent lines
+                        </h3>
+                        <ul id="futureDisruptive" class="space-y-3 text-base font-bold text-purple-900 text-justify"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat -->
+            <section class="bg-white rounded-3xl shadow-card overflow-hidden flex flex-col h-[600px] border-2 border-slate-200">
+                <div class="p-6 bg-slate-50 border-b-2 border-slate-200 flex items-center justify-between">
+                    <span class="font-extrabold text-slate-800 text-2xl flex items-center gap-3">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                        Resolve queries and extract deeper research insights
+                    </span>
+                    <div id="chatApiContainer" class="hidden items-center gap-2">
+                        <input type="password" id="chatApiKey" placeholder="API Key needed to chat" class="px-3 py-1 text-sm border rounded-lg bg-slate-50 text-slate-700 w-48">
+                    </div>
+                </div>
+                <div id="chatHistory" class="flex-grow p-8 overflow-y-auto space-y-6 flex flex-col bg-slate-50/50">
+                    <div class="self-start bg-white border-2 border-slate-200 text-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm text-base font-medium max-w-[85%] text-justify">
+                        Research contextualized. Ready to generate evidence-based technical answers.
+                    </div>
+                </div>
+                <div class="p-6 bg-white border-t-2 border-slate-100">
+                    <form id="chatForm" class="flex gap-4">
+                        <input type="text" id="chatInput" class="flex-grow px-6 py-4 border-2 border-slate-200 rounded-2xl text-base font-medium focus:outline-none focus:border-indigo-500 transition-colors shadow-sm text-slate-800" placeholder="Escribe tu pregunta...">
+                        <button type="submit" id="chatBtn" class="bg-indigo-600 text-white px-8 py-4 rounded-2xl text-base font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-lg">SEND</button>
+                    </form>
+                </div>
+            </section>
+
+
+            <!-- Coffee Support -->
+            
+
+                        <!-- Bloque Donación / Café -->
+            <div class="w-full bg-gradient-to-r from-indigo-50 to-indigo-10 border border-indigo-200 p-6 rounded-3xl shadow-card flex flex-col md:flex-row items-center justify-between gap-6 transition-transform hover:-translate-y-1 duration-300">
+                
+                <!-- Icono y Texto -->
+                <div class="flex items-center gap-5">
+                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-200 shrink-0">
+                        <!-- Icono Taza FontAwesome -->
+                        <i class="fa-solid fa-mug-hot text-3xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-extrabold text-slate-800">Enjoying RESEARCH Analyzer?</h3>
+                        <p class="text-slate-500 text-sm font-medium mt-1">If this tool optimizes your workflow, consider supporting its maintenance and continuous evolution with a coffee.</p>
+                    </div>
+                </div>
+
+                <!-- Botón de Acción -->
+                <button 
+                    type="button" 
+                    onclick="window.open('https://buy.stripe.com/cNi9AL2SJ4na4Du5h0dwc01', '_blank')"
+                    class="group bg-indigo-100 hover:bg-indigo-200 border-2 border-indigo-200 text-indigo-800 px-8 py-4 rounded-2xl font-bold transition-all shadow-sm hover:shadow-md flex items-center gap-3 whitespace-nowrap transform hover:-translate-y-0.5"
+                >
+                    <!-- Icono Corazón (Lata al hacer hover en el botón) -->
+                    <i class="fa-solid fa-heart text-red-500 text-xl animate-pulse"></i>
+                    <span>Send a coffee</span>
+                </button>
+            </div>
+
+
+
+            
+            <button id="resetAppBtn" onclick="resetApp()" class="self-center mt-8 text-sm font-bold text-slate-400 hover:text-indigo-600 underline transition-colors tracking-wide hidden">ANALYZE NEW DOCUMENT</button>
+        </div>
+    </main>
+
+    <script>
+
+        function validatePayload(data) {
+            // 1. Integridad estructural básica
+            if (!data || typeof data !== 'object') return false;
+
+            // 2. Validación de Resumen (Debe existir y tener longitud mínima)
+            // Se descartan respuestas de una línea tipo "No content" o "N/A"
+            const hasSummary = data.resumen && 
+                            typeof data.resumen === 'string' && 
+                            data.resumen.length > 50; 
+
+            // 3. Validación de Hallazgos (Debe ser array y no estar vacío)
+            const hasFindings = Array.isArray(data.principales_hallazgos) && 
+                                data.principales_hallazgos.length > 0;
+
+            // 4. Validación de DAFO (Opcional, pero recomendado verificar estructura)
+            const hasDafo = data.dafo && typeof data.dafo === 'object';
+
+            // Retorna true solo si pasa los umbrales críticos
+            return hasSummary && hasFindings && hasDafo;
+        }
+
+        // --- FUNCIÓN DE LIMPIEZA DE INGESTA (ETL) ---
+        function sanitizeInputText(rawText) {
+            if (!rawText) return "";
+            return rawText
+                // 1. Eliminar caracteres nulos y de control binario (veneno para JSON)
+                .replace(/[\u0000-\u0009\u000B\u000C\u000E-\u001F\u007F]/g, '')
+                // 2. Normalizar espacios (elimina saltos de línea excesivos)
+                .replace(/\r\n/g, '\n')
+                .replace(/\n{3,}/g, '\n\n') // Máximo 2 saltos de línea seguidos
+                // 3. Trim final
+                .trim();
+        }
+
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+
+        const TEXT_MODELS = [
+            "gemini-3-flash-preview", //probado
+            "gemini-2.5-flash-preview-09-2025",      //probado
+            "gemini-2.5-flash",         //probado
+            "gemini-2.5-flash-lite-preview-09-2025", //probado
+            "gemini-2.5-flash-lite",    //probado
+            "gemini-flash-lite-latest", //probado
+            "gemini-flash-latest"       //probado
+        ];
+
+        let currentDocumentText = "";
+        let pendingResultData = null;
+        let pendingMermaidCode = ""; 
+        let panZoomInstance = null;
+        let conversationHistory = []; 
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        
+        // Refs (Declaramos variables sin asignar para que sean globales)
+        let apiKeyInput, fileInput, dropArea, activityLog, statusIndicator, successReveal, dashboard, inputZone, errorMsg;
+        let mermaidLoading, mermaidChart, mermaidError, mermaidErrorCode;
+        let chatHistory, chatInput, chatBtn, chatForm, saveBtn, chatApiContainer, chatApiKey, resetAppBtn, regenDiagramBtn;
+        let uiSequenceTimer = 0; // El contador de tiempo
+
+        // Función para conectar con el DOM una vez cargado
+        function initDomRefs() {
+            // Usamos un helper seguro
+            const get = (id) => document.getElementById(id);
+
+            apiKeyInput = get('apiKey');
+            fileInput = get('fileInput');
+            dropArea = get('dropArea');
+            activityLog = get('activityLog');
+            statusIndicator = get('statusIndicator');
+            successReveal = get('successReveal');
+            dashboard = get('dashboard');
+            inputZone = get('inputZone');
+            errorMsg = get('errorMsg');
+            
+            mermaidLoading = get('mermaid-loading');
+            mermaidChart = get('mermaid-chart');
+            mermaidError = get('mermaid-error');
+            mermaidErrorCode = get('mermaid-error-code'); // Ahora existirá gracias al Paso 1
+
+            chatHistory = get('chatHistory');
+            chatInput = get('chatInput');
+            chatBtn = get('chatBtn');
+            chatForm = get('chatForm'); // CRÍTICO: Debe existir
+            saveBtn = get('saveBtn');
+            chatApiContainer = get('chatApiContainer');
+            chatApiKey = get('chatApiKey');
+            resetAppBtn = get('resetAppBtn');
+            regenDiagramBtn = get('regenDiagramBtn');
+
+            // Debug de arranque
+            if(!chatForm) console.error("FATAL: chatForm no encontrado en el DOM");
+        }
+
+        
+        // Init
+        window.addEventListener('load', () => {
+            // 1. Conectar referencias al DOM
+            initDomRefs();
+
+            // 2. Adjuntar listeners de CHAT
+            if (chatForm) {
+                chatForm.addEventListener('submit', handleChatSubmit);
+            }
+
+            // 3. Adjuntar listeners de ARCHIVO (Drag & Drop) - ¡AQUÍ ESTABA EL FALLO!
+            if (fileInput && dropArea) {
+                fileInput.addEventListener('change', handleFileSelect);
+                
+                ['dragenter', 'dragover'].forEach(e => dropArea.addEventListener(e, ev => { 
+                    ev.preventDefault(); 
+                    dropArea.classList.add('bg-indigo-50', 'border-indigo-500'); 
+                }));
+                
+                ['dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { 
+                    ev.preventDefault(); 
+                    dropArea.classList.remove('bg-indigo-50', 'border-indigo-500'); 
+                }));
+                
+                dropArea.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
+            }
+            
+            // 4. Lógica de exportación vs normal
+            if (window.EXPORT_MODE) {
+                // ... (Mantén tu lógica de exportación igual) ...
+                currentDocumentText = window.EXPORT_CONTEXT;
+                pendingResultData = window.EXPORT_DATA;
+                pendingMermaidCode = window.EXPORT_MERMAID;
+                
+                if(inputZone) inputZone.classList.add('hidden');
+                if(document.getElementById('mainApiInput')) document.getElementById('mainApiInput').classList.add('hidden');
+                if(saveBtn) { saveBtn.classList.remove('flex'); saveBtn.classList.add('hidden'); }
+                if(resetAppBtn) resetAppBtn.classList.add('hidden');
+                if(regenDiagramBtn) regenDiagramBtn.classList.add('hidden');
+
+                if(chatApiContainer) {
+                    chatApiContainer.classList.remove('hidden'); 
+                    chatApiContainer.classList.add('flex');
+                }
+                
+                renderMermaidFromState();
+                log("success", "Informe cargado en modo lectura.");
+            } else {
+                const storedKey = localStorage.getItem('gemini_api_key');
+                if (storedKey && apiKeyInput) apiKeyInput.value = storedKey;
+                if (apiKeyInput) apiKeyInput.addEventListener('input', (e) => localStorage.setItem('gemini_api_key', e.target.value.trim()));
+            }
+        });
+
+        // --- SIMPLIFIED RENDER FUNCTION ---
+        // Just use standard Marked + KaTeX Auto-Render
+        // --- FUNCIÓN DE RENDERIZADO BLINDADA (Protect -> Parse -> Restore) ---
+        function renderContent(elementIdOrElement, markdownText) {
+            const elem = typeof elementIdOrElement === 'string' ? document.getElementById(elementIdOrElement) : elementIdOrElement;
+            if (!elem || !markdownText) return;
+
+            // 1. Protección: Extraer fórmulas LaTeX y guardar en tokens temporales
+            const mathTokens = [];
+            // Regex captura: $$...$$, \[...\], \(...\), y $...$ (evitando \$ escapados)
+            const protectedText = markdownText.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|(?<!\\)\$[^$]+?\$)/g, (match) => {
+                mathTokens.push(match);
+                return `%%MATH_TOKEN_${mathTokens.length - 1}%%`;
+            });
+
+            // 2. Parseo: Markdown convierte negritas, listas, etc. (ignorando las mates protegidas)
+            let htmlContent = marked.parse(protectedText);
+
+            // 3. Restauración: Devolver las fórmulas LaTeX a su lugar
+            htmlContent = htmlContent.replace(/%%MATH_TOKEN_(\d+)%%/g, (_, index) => {
+                return mathTokens[parseInt(index)];
+            });
+
+            // 4. Inyección: Poner el HTML en la página
+            elem.innerHTML = htmlContent;
+
+            // 5. Renderizado Matemático: KaTeX procesa las fórmulas intactas
+            renderMathInElement(elem, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "\\[", right: "\\]", display: true}
+                ],
+                throwOnError: false,
+                trust: true
+            });
+        }
+
+       function exportReport() {
+            if (!pendingResultData) return;
+
+            if (window.umami) {
+                umami.track('Informe guardado');
+            }
+
+            // 1. Limpieza Visual (UI Reset)
+            const chatContainer = document.getElementById('chatHistory');
+            const savedChatHTML = chatContainer.innerHTML;
+            const initialMsg = `<div class="self-start bg-white border-2 border-slate-200 text-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm text-base font-medium max-w-[85%] text-justify">Research contextualized. Ready to generate evidence-based technical answers.</div>`;
+            chatContainer.innerHTML = initialMsg;
+
+            saveBtn.classList.add('hidden');
+            if(resetAppBtn) resetAppBtn.classList.add('hidden');
+            if(regenDiagramBtn) regenDiagramBtn.classList.add('hidden'); 
+
+            // 2. Captura del HTML
+            const htmlContent = document.documentElement.outerHTML;
+            
+            // 3. Restaurar UI
+            chatContainer.innerHTML = savedChatHTML;
+            saveBtn.classList.remove('hidden');
+            if(resetAppBtn) resetAppBtn.classList.remove('hidden');
+            if(regenDiagramBtn) regenDiagramBtn.classList.remove('hidden');
+            
+            // 4. Serialización Segura de Datos
+            const safeStringify = (obj) => {
+                if (!obj) return '""';
+                let str = JSON.stringify(obj);
+                return str
+                    .replace(/\u2028/g, '\\u2028')
+                    .replace(/\u2029/g, '\\u2029')
+                    .replace(/<\/script>/g, '<\\/script>');
+            };
+
+            const safeContext = safeStringify(currentDocumentText);
+            const safeData = safeStringify(pendingResultData);
+            const safeMermaid = safeStringify(pendingMermaidCode);
+
+            const scriptPayload = 
+                'window.EXPORT_MODE = true;\n' +
+                'window.EXPORT_CONTEXT = ' + safeContext + ';\n' +
+                'window.EXPORT_DATA = ' + safeData + ';\n' +
+                'window.EXPORT_MERMAID = ' + safeMermaid + ';';
+
+            const scriptTagClose = '<' + '/script>'; 
+            
+            // 5. INYECCIÓN QUIRÚRGICA (SOLUCIÓN AL BUG $)
+            // Buscamos la última etiqueta </body> del archivo real
+            const closingTag = "</body>";
+            const lastBodyIndex = htmlContent.lastIndexOf(closingTag);
+
+            if (lastBodyIndex === -1) {
+                alert("Critical error: HTML invalid.");
+                return;
+            }
+
+            // CORTE Y EMPALME MANUAL (Evita que .replace rompa los símbolos $)
+            const injectedHtml = htmlContent.substring(0, lastBodyIndex) + 
+                                 '<script>' + scriptPayload + scriptTagClose + 
+                                 htmlContent.substring(lastBodyIndex);
+     
+            // 6. Generar Blob con DOCTYPE (Arregla estilos y KaTeX)
+            const blob = new Blob(['<!DOCTYPE html>\n', injectedHtml], {type: 'text/html'});
+
+            // 7. Descarga
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Scientific_Report_${Date.now()}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        
+        function handleFileSelect(e) { handleFiles(e.target.files); }
+
+        async function handleFiles(files) {
+            if (!files.length) return;
+            uiSequenceTimer = 0;
+            const file = files[0];
+            const key = apiKeyInput.value.trim();
+            if (!key) { showError("API Key is needed"); return; }
+
+            resetUI();
+            log("info", `Initializing data stream for ${file.name}`);
+
+                if (window.umami) {
+                    umami.track('Archivo Cargado', { 
+                        tipo: file.type || 'desconocido', 
+                        tamaño_mb: (file.size / 1024 / 1024).toFixed(2) // Tamaño en MB
+                    });
+                }
+
+
+            try {
+                // 1. EXTRACTION
+                let txt = "";
+                if (file.type === "application/pdf") txt = await readPDF(file);
+                else if (file.type.includes("word")) txt = await readDOCX(file);
+                else if (file.type === "text/plain") txt = await readTXT(file);
+                else throw new Error("Format non valid");
+
+                if (txt.length < 50) throw new Error("File error");
+
+                // 2. TRANSFORMATION
+                const cleanTxt = sanitizeInputText(txt); 
+
+                // 3. LOAD
+                currentDocumentText = cleanTxt; 
+                
+                log("success", "Textual features revised and optimized. Corpus ready for analysis");
+                
+                // --- INICIO DE CAMBIOS PARA METADATOS ---
+                
+                // Lanzamos las 3 promesas en paralelo
+                const textPromise = analyzeText(cleanTxt, key);
+                const diagramPromise = generateMermaidCodeParallel(cleanTxt, key);
+                const metadataPromise = extractMetadata(cleanTxt, key); // <--- NUEVA LLAMADA
+
+                // Esperamos a que terminen TODAS (éxito o fallo)
+                // El array ahora tiene 3 elementos: [0]=Texto, [1]=Diagrama, [2]=Metadata
+                const results = await Promise.allSettled([textPromise, diagramPromise, metadataPromise]);
+
+                // Procesamos METADATOS (Independiente del análisis principal)
+                const metaResult = results[2];
+                if (metaResult.status === 'fulfilled' && metaResult.value) {
+                    
+                    
+                    // Si el análisis principal fue bien, guardamos metadata para el botón "Guardar Informe"
+                    if (pendingResultData) {
+                        pendingResultData.metadata = metaResult.value;
+                    }
+                    console.log("%c ÉXITO METADATOS: ", "background: #10b981; color: white; font-weight: bold;", metaResult.value);
+                    log("success", "Research identity sourced, verified and indexed.");
+                }
+
+                // --- FIN DE CAMBIOS ---
+
+                // Verificamos si el análisis principal (Core) funcionó
+                if (pendingResultData) {
+                    log("success", "Analytical synthesis complete. Logic framework successfully projected into report.");
+                    setTimeout(() => {    
+                        successReveal.classList.remove('hidden');
+                        successReveal.classList.add('flex');
+                        saveBtn.classList.remove('hidden'); 
+                        saveBtn.classList.add('flex');
+                        if (window.umami) {
+                            umami.track('Informe Generado', { 
+                                status: reportStatus,
+                                timestamp: new Date().toISOString()
+                            });
+                        }
+
+                    }, uiSequenceTimer);
+                } else {
+                    // Si falla el análisis de texto principal, consideramos que falló todo el proceso crítico
+                    throw new Error("Document analysis failed.");
+                }
+
+            } catch (err) {
+                console.error(err);
+                showError(err.message);
+                log("error", err.message);
+            }
+        }
+        function readTXT(f) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsText(f); }); }
+        async function readDOCX(f) { const b = await f.arrayBuffer(); const r = await mammoth.extractRawText({ arrayBuffer: b }); return r.value; }
+        async function readPDF(f) {
+            const b = await f.arrayBuffer();
+            const doc = await pdfjsLib.getDocument({ data: b }).promise;
+            let txt = "";
+            const limit = Math.min(doc.numPages, 30);
+            for (let i=1; i<=limit; i++) {
+                const p = await doc.getPage(i);
+                const c = await p.getTextContent();
+                txt += c.items.map(s => s.str).join(' ') + "\n";
+            }
+            return txt;
+        }
+
+        async function extractMetadata(text, key) {
+            // 1. Definición estricta de salida
+            const schema = {
+                "title": "String (Título exacto del paper)",
+                "authors": "String (Lista de autores formateada, ej: 'Smith J., Doe A.')",
+                "doi": "String (Solo el identificador DOI, ej: '10.1038/s41586...', o 'N/A' si no existe)"
+            };
+
+            const prompt = `
+            TASK: Extract metadata from scientific paper.
+            INPUT: ${text.substring(0, 5000)} 
+            OUTPUT SCHEMA: ${JSON.stringify(schema)}
+            RULES:
+            - Extract ONLY from the provided text.
+            - If DOI is missing, return "N/A".
+            - Title must be the paper title, NOT the journal name.
+            - Return strict JSON.
+            `;
+
+            log("process", "Retrieving research identity (Title, Authors, DOI)");
+
+            try {
+                const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+
+                await handleApiError(resp, "gemini-2.5-flash (Metadata)");
+                
+                const data = await resp.json();
+                const jsonText = data.candidates[0].content.parts[0].text;
+                const metadata = JSON.parse(jsonText);
+
+                // LOG REQUERIDO EN CONSOLA
+                console.log("--- METADATA EXTRACTED ---");
+                console.table(metadata);
+
+                return metadata;
+
+            } catch (e) {
+                console.warn("Metadata extraction failed.", e);
+                return null; // Fail-safe para no romper el flujo principal
+            }
+        }
+
+
+        function renderMetadataHeader(meta) {
+            if (!meta) return;
+
+            const titleEl = document.getElementById('paperTitle');
+            const metaSpan = document.getElementById('paperMeta');
+            const authEl = document.getElementById('paperAuthors');
+            const doiEl = document.getElementById('paperDoi');
+            const doiText = doiEl ? doiEl.querySelector('.doi-text') : null;
+
+            // 1. Título
+            if (meta.title && meta.title !== "N/A" && titleEl) {
+                titleEl.textContent = meta.title;
+                titleEl.title = meta.title; 
+            }
+
+            // 2. Autores
+            if (meta.authors && authEl) {
+                authEl.textContent = meta.authors;
+            }
+            
+            // 3. DOI (Ahora independiente)
+            if (meta.doi && meta.doi !== "N/A" && doiEl && doiText) {
+                const cleanDoi = meta.doi.replace(/^doi:?\s*/i, '').trim();
+                doiText.textContent = `DOI: ${cleanDoi}`; // Texto explícito
+                doiEl.href = `https://doi.org/${cleanDoi}`;
+                
+                // Usamos 'flex' para que se comporte como bloque flexible independiente
+                doiEl.classList.remove('hidden');
+                doiEl.classList.add('flex'); 
+            } else if (doiEl) {
+                doiEl.classList.add('hidden');
+                doiEl.classList.remove('flex');
+            }
+
+            // 4. Mostrar contenedor de autores
+            if (metaSpan) {
+                metaSpan.classList.remove('hidden');
+            }
+        }
+
+
+
+        async function analyzeText(text, key) {
+            const schema = {
+                "resumen": "Markdown",
+                "principales_hallazgos": ["Item 1", "Item 2"],
+                "lineas_futuras_tipicas": ["Item 1"],
+                "lineas_futuras_disruptivas": ["Item 1"],
+                "dafo": { "fortalezas": [], "oportunidades": [], "debilidades": [], "amenazas": [] }
+            };
+
+            // Prompt optimizado (como lo tenías)
+            const prompt = `
+            Rol: Revisor científico Senior (Especialista en Materiales).
+            Input: ${text.substring(0, 30000)}
+            Tarea: Extraer datos en JSON estricto.
+            
+            REGLAS DE ORO PARA FORMATEO (CRÍTICAS):
+            1. JSON ESCAPING: En cadenas JSON, las barras invertidas de LaTeX deben ser DOBLES.
+               - MAL: "$\\sigma$" (El JSON se comerá la barra).
+               - BIEN: "$\\\\sigma$" (Doble barra asegura que llegue una).
+            
+            2. QUÍMICA Y MATEMÁTICAS:
+               - Usa formato LaTeX ($...$) para TODO compuesto químico o unidad técnica.
+               - Para fórmulas químicas, NO uses \\text{}. Usa \\mathrm{} o escribe los elementos directos.
+               - Ejemplo MAL: "$\\text{Na}_2\\text{SiO}_3$" (Propenso a errores).
+               - Ejemplo BIEN: "$\\mathrm{Na}_2\\mathrm{SiO}_3$" o "$Na_2SiO_3$".
+            
+            3. CERO REPETICIONES:
+               - NUNCA pongas el dato en texto plano seguido de su versión LaTeX.
+               - MAL: "porosidad de 74 $74$".
+               - BIEN: "porosidad de $74$".
+
+            4. COMILLAS SEGURAS: NO uses comillas dobles (") DENTRO de los textos. Usa comillas simples (') si necesitas enfatizar.
+               - MAL: "El método "seco" falló"
+               - BIEN: "El método 'seco' falló"
+            
+            5. IDIOMA DE SALIDA: Inglés
+            Schema: ${JSON.stringify(schema)}
+            `;
+
+            let lastError = null;
+
+            for (const model of TEXT_MODELS) {
+                log("process", `Deciphering research document architecture with AI model ${model}...`);
+                
+                const controller = new AbortController();
+                // Aumentamos timeout a 55s para modelos pesados
+                const timeout = setTimeout(() => controller.abort(), 55000); 
+
+                try {
+                    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            contents: [{ parts: [{ text: prompt }] }], 
+                            generationConfig: { responseMimeType: "application/json" } 
+                        }),
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeout);
+
+                    // 1. INSPECCIÓN DE TELEMETRÍA
+                    await handleApiError(resp, model); // Lanzará error si no es 200 OK
+
+                    // 2. PROCESAMIENTO
+                    const data = await resp.json();
+
+
+                    if (data.candidates?.[0]?.content) {
+                        let rawJson = data.candidates[0].content.parts[0].text;
+                        
+                        // 1. Limpieza básica
+                        rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                        // 2. REPARACIÓN DE ESTRUCTURA (NUEVO)
+                        // Si hay "cierre de comillas" seguido de espacio y "apertura de comillas",
+                        // y NO hay coma... ¡la ponemos nosotros!
+                        // Arregla: ["Item A" "Item B"] -> ["Item A", "Item B"]
+                        rawJson = rawJson.replace(/\"\s+\"/g, '", "');
+
+                        // 3. SANITIZADOR DE CARACTERES (El que ya funcionaba)
+                        rawJson = rawJson.replace(/\\(.)/g, (match, char) => {
+                            if (["\"", "\\", "/", "n", "r", "t", "b", "f"].includes(char)) return match; 
+                            if (char === 'u') return '\\\\u'; // Fix Unicode vs LaTeX
+                            return '\\\\' + char; // Fix LaTeX standard
+                        });
+
+                        // 4. Arreglos menores
+                        rawJson = rawJson
+                            .replace(/[\t\f\v]ext\{/g, '\\text{')
+                            .replace(/(\s)ext\{/g, '$1\\text{');
+
+                        // 5. PARSEO FINAL
+                        try {
+                            const candidateData = JSON.parse(rawJson);
+
+                            // AQUÍ está la clave: Si está vacío, lanzamos error como si fuera fallo de red
+                            if (!validatePayload(candidateData)) {
+                                throw new Error("MODEL_HALLUCINATION: Valid JSON but empty/useless content.");
+                            }
+
+                            pendingResultData = candidateData;
+                            log("success", ` ${model} has successfully analyzed and repostulated the research into a technical report.`);
+                            return; // Éxito real, salimos del bucle
+                        } catch (parseError) {
+                            // Si es nuestro error de validación, se relanza para que lo capture el catch exterior
+                            // Si es error de sintaxis JSON, igual falla.
+                            throw new Error(`CONTENT_ERROR: ${parseError.message}`);
+                        }
+                    }
+
+
+
+                } catch (e) {
+                    clearTimeout(timeout);
+                    lastError = e;
+
+                    // LÓGICA DE DECISIÓN DE ERROR
+                    const msg = e.message;
+                    
+                    if (msg.includes('FATAL')) {
+                        log("error", `Fatal error: ${msg}`);
+                        throw e; // Rompe el bucle, no tiene sentido seguir
+                    }
+                    
+                    if (e.name === 'AbortError') {
+                        log("warning", `Model latency detected for ${model}. Switching engine for faster resolution...`);
+                    } else if (msg.includes('QUOTA') || msg.includes('429')) {
+                        log("warning", `Quota limit reached for ${model}. Re-allocating request to next available model...`);
+                    } else if (msg.includes('MODEL_404')) {
+                        log("warning", `Model ${model} unavailable. Bypassing...`);
+                    } else if (msg.includes('MODEL_HALLUCINATION') || msg.includes('CONTENT_ERROR')) {
+                        log("warning", `The response of ${model} did not meet minimum quality expected. Retrying with a different model...`);
+                    } else {
+                        log("warning", `Model ${model} reported an error: ${msg}. Re-routing for resolution...`);
+                    }
+                    // Si no es fatal, el bucle continúa con el siguiente modelo
+                }
+            }
+
+            // Si llegamos aquí, todos fallaron
+            log("error", "Available models failed to resolve this research.");
+            throw lastError || new Error("General failure occured.");
+        }
+
+        async function generateMermaidCodeParallel(text, key) {
+            pendingMermaidCode = "";
+            mermaidLoading.classList.remove('hidden');
+            mermaidChart.innerHTML = "";
+            mermaidError.classList.add('hidden');
+            
+            const jsonSchema = {
+                "nodes": [
+                    { "id": "A", "label": "Initial Hypothesis: Active Methodology", "group": "Context/Theory" },
+                    { "id": "B", "label": "Student Group (n=120)", "group": "Sample" },
+                    { "id": "C", "label": "Intervention Phase (6 weeks)", "group": "Methodology" },
+                    { "id": "D", "label": "Result: Motivation Increase (+20%, p<0.05)", "group": "Key Results" }
+                ],
+                "edges": [ { "from": "A", "to": "C" } ]
+            };
+
+            const prompt = `
+            EXTRACT THE ARGUMENTATIVE & EXPERIMENTAL FLOWCHART.
+            Task: Analyze the scientific text and reconstruct the logical flow.
+            CRITICAL:
+            1. **Detailed Granularity**: Break down complex steps.
+            2. **Data-Rich Labels**: Include quantitative details (Temp, Time, %, Molar ratios).
+            Output strictly JSON following this schema structure: ${JSON.stringify(jsonSchema)}
+            Text Segment: ${text.substring(0, 15000)}
+            `;
+
+            function wrapText(str, width = 25) {
+                if (!str) return "";
+                const words = str.split(" ");
+                let currentLine = "";
+                let result = "";
+                words.forEach(word => {
+                    if ((currentLine + word).length > width) {
+                        result += currentLine.trim() + "<br/>";
+                        currentLine = word + " ";
+                    } else {
+                        currentLine += word + " ";
+                    }
+                });
+                return result + currentLine.trim();
+            }
+
+            for (const model of TEXT_MODELS) {
+                log("process", `Mapping the research logic to generate a conceptual schema.`);
+                try {
+                    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } })
+                    });
+                    
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        const jsonGraph = JSON.parse(data.candidates[0].content.parts[0].text);
+                        
+                        let mermaidCode = "graph TD\n";
+                        const dynamicGroups = {};
+                        if (jsonGraph.nodes && Array.isArray(jsonGraph.nodes)) {
+                            jsonGraph.nodes.forEach(n => {
+                                const g = n.group || "Other";
+                                if (!dynamicGroups[g]) dynamicGroups[g] = [];
+                                dynamicGroups[g].push(n);
+                            });
+                        }
+
+                        const colors = ['#e0f7fa', '#fff3e0', '#f3e5f5', '#e8f5e9', '#e1f5fe', '#ffebee'];
+                        const borderColors = ['#006064', '#e65100', '#4a148c', '#1b5e20', '#01579b', '#b71c1c'];
+                        let colorIdx = 0;
+                        let styleDefs = "";
+
+                        for (const [groupName, nodes] of Object.entries(dynamicGroups)) {
+                            const groupId = groupName.replace(/[^a-zA-Z0-9]/g, '');
+                            mermaidCode += `subgraph ${groupId} ["${groupName}"]\n  direction TB\n`; 
+                            nodes.forEach(n => {
+                                const cleanLabel = n.label.replace(/["()]/g, '').trim();
+                                const wrappedLabel = wrapText(cleanLabel, 25);
+                                mermaidCode += `  ${n.id}["${wrappedLabel}"]\n`;
+                            });
+                            mermaidCode += `end\n`;
+                            const bg = colors[colorIdx % colors.length];
+                            const stroke = borderColors[colorIdx % borderColors.length];
+                            styleDefs += `classDef style${groupId} fill:${bg},stroke:${stroke},stroke-width:2px;\nclass ${nodes.map(n=>n.id).join(',')} style${groupId};\n`;
+                            colorIdx++;
+                        }
+                        
+                        if (jsonGraph.edges) {
+                            jsonGraph.edges.forEach(e => { mermaidCode += `${e.from} --> ${e.to}\n`; });
+                        }
+                        mermaidCode += styleDefs;
+                        
+                        pendingMermaidCode = mermaidCode;
+                        log("success", "Gemini has successfully engineered a conceptual schema of the research");
+                        break; 
+                    }
+                } catch (e) { console.log(e); }
+            }
+        }
+
+        // --- NEW REGENERATION FUNCTION ---
+        async function regenerateDiagram() {
+            let key = apiKeyInput.value.trim();
+            if (window.EXPORT_MODE) key = chatApiKey.value.trim();
+            if (!key) {
+                alert("Por favor, introduce una API Key válida.");
+                return;
+            }
+
+            document.getElementById('mermaid-chart').innerHTML = '';
+            document.getElementById('mermaid-loading').classList.remove('hidden');
+            document.getElementById('mermaid-error').classList.add('hidden');
+
+            try {
+                await generateMermaidCodeParallel(currentDocumentText, key);
+                renderMermaidFromState();
+            } catch(e) {
+                console.error(e);
+                alert("Error al regenerar el diagrama.");
+            }
+        }
+
+        async function renderMermaidFromState() {
+             if (pendingMermaidCode) {
+                try {
+                    const id = 'mermaid-svg-' + Date.now();
+                    const { svg } = await mermaid.render(id, pendingMermaidCode);
+                    mermaidChart.innerHTML = svg;
+                    mermaidLoading.classList.add('hidden');
+                    
+                    // PARCHE TÉCNICO: Aumentado a 500ms y estilos forzados
+                    setTimeout(() => {
+                        const svgElement = mermaidChart.querySelector('svg');
+                        if (svgElement) {
+                            // 1. FORZAR DIMENSIONES (Crucial para el cálculo de zoom)
+                            svgElement.style.width = '100%';
+                            svgElement.style.height = '100%';
+                            svgElement.style.minHeight = '600px'; // Obligatorio para evitar colapso
+                            svgElement.removeAttribute('maxWidth'); 
+
+                            // 2. Limpieza
+                            if (panZoomInstance) { panZoomInstance.destroy(); }
+                            
+                            // 3. Inicialización
+                            panZoomInstance = svgPanZoom(svgElement, { 
+                                zoomEnabled: true, 
+                                controlIconsEnabled: true, // Puesto a true para que veas los controles
+                                fit: true, 
+                                center: true, 
+                                minZoom: 0.1, 
+                                maxZoom: 10,
+                                dblClickZoomEnabled: false 
+                            });
+                            
+                            window.addEventListener('resize', () => panZoomInstance.resize());
+                        }
+                    }, 500); // 500ms da tiempo al motor de renderizado
+                } catch (renderErr) {
+                    console.error(renderErr);
+                    mermaidLoading.classList.add('hidden');
+                    // Comprobación de seguridad para evitar crash si el ID falta
+                    if(mermaidErrorCode) mermaidErrorCode.innerText = pendingMermaidCode;
+                    mermaidError.classList.remove('hidden');
+                    mermaidError.classList.add('flex');
+                }
+            } else {
+                mermaidLoading.classList.add('hidden');
+                mermaidError.classList.remove('hidden');
+                mermaidError.classList.add('flex');
+            }
+        }
+
+        async function revealDashboard() {
+            try {
+                inputZone.classList.add('hidden');
+                successReveal.classList.remove('flex');
+                successReveal.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                dashboard.classList.add('flex');
+                
+                window.scrollTo(0,0);
+                if (resetAppBtn) resetAppBtn.classList.remove('hidden');
+                
+                const d = pendingResultData || {};
+                if (d.metadata) {
+                    renderMetadataHeader(d.metadata);
+                }
+                const dafo = d.dafo || {};
+                
+                // Use Standard Render
+                renderContent('summaryContent', d.resumen || "N/A");
+                
+                const fill = (id, arr) => {
+                    const el = document.getElementById(id);
+                    el.innerHTML = "";
+                    (arr||[]).forEach(t => {
+                        const li = document.createElement("li");
+                        li.className = "flex items-start gap-3 bg-white/50 p-3 rounded-lg border-2 border-slate-100";
+                        // Wrap content in div to use renderContent logic
+                        li.innerHTML = `<span class="mt-1.5 w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 shadow-sm"></span><div class="text-slate-700 content-render"></div>`;
+                        renderContent(li.querySelector(".content-render"), t);
+                        el.appendChild(li);
+                    });
+                };
+                
+                fill('keyFindingsList', d.principales_hallazgos);
+                
+                const fillFuture = (id, arr, cls) => {
+                     const el = document.getElementById(id);
+                     el.innerHTML = "";
+                     (arr||[]).forEach(t => {
+                        const li = document.createElement("li");
+                        li.className = cls;
+                        renderContent(li, t);
+                        el.appendChild(li);
+                     });
+                }
+
+                fillFuture('futureTypical', d.lineas_futuras_tipicas, "p-3 bg-sky-50 rounded-lg border border-sky-100 text-slate-700");
+                fillFuture('futureDisruptive', d.lineas_futuras_disruptivas, "p-3 bg-white rounded-lg border-2 border-purple-200 text-purple-900 shadow-sm");
+                
+                const fillDafo = (id, arr) => {
+                    const el = document.getElementById(id);
+                    el.innerHTML = "";
+                    (arr||[]).forEach(t => {
+                        const li = document.createElement("li");
+                        li.className = "flex items-start gap-2";
+                        li.innerHTML = `<span class="font-bold opacity-60 text-lg leading-none">•</span><div class="content-render"></div>`;
+                        renderContent(li.querySelector(".content-render"), t);
+                        el.appendChild(li);
+                    });
+                };
+                fillDafo('swotStrengths', dafo.fortalezas);
+                fillDafo('swotWeaknesses', dafo.debilidades);
+                fillDafo('swotOpportunities', dafo.oportunidades);
+                fillDafo('swotThreats', dafo.amenazas);
+
+                renderMermaidFromState();
+
+            } catch (err) {
+                console.error("Critical rendering error:", err);
+                alert("Error crítico al renderizar el dashboard: " + err.message);
+            }
+        }
+
+        function resetZoom() {
+            if (panZoomInstance) {
+                panZoomInstance.reset();
+                panZoomInstance.fit();
+                panZoomInstance.center();
+            }
+        }
+
+        function log(type, msg) {
+            setTimeout(() => {
+                const div = document.createElement('div');
+                div.className = "flex items-start gap-3 animate-enter";
+                
+                let iconHtml = "";
+                // 1. Estilo por defecto (Monoespaciado, tamaño estándar)
+                let msgClass = "text-indigo-900 font-mono";
+
+                if (type === 'success') {
+                    iconHtml = `
+                        <svg class="mt-0.5 w-5 h-5 text-amber-500 flex-shrink-0 filter drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    `;
+                    statusIndicator.className = "h-3 w-3 rounded-full bg-amber-400";
+                    
+                    // 2. CAMBIO: Si es éxito, aplicamos negrita (font-bold) y tamaño base (text-base)
+                    msgClass = "text-indigo-900 font-bold";
+                    
+                } else {
+                    let dotClass = "bg-indigo-400"; 
+                    if (type === 'process') dotClass = "bg-green-500";
+                    if (type === 'error' || type === 'warning') dotClass = "bg-rose-500";
+                    
+                    iconHtml = `<span class="mt-0.5 w-3 h-3 rounded-full ${dotClass} flex-shrink-0 "></span>`;
+                    
+                    statusIndicator.className = `h-3 w-3 rounded-full ${dotClass}`;
+                }
+
+                // 3. Inyección de la variable msgClass
+                div.innerHTML = `${iconHtml}<span class="${msgClass}">${msg}</span>`;
+                
+                activityLog.appendChild(div);
+                activityLog.scrollTop = activityLog.scrollHeight;
+            },  uiSequenceTimer); // Usamos el tiempo acumulado
+
+            // 2. Incrementamos el tiempo para el SIGUIENTE mensaje (1.5 segundos)
+            uiSequenceTimer += 1000;
+        }
+
+
+
+        // --- DECODIFICADOR DE ERRORES HTTP ---
+        async function handleApiError(response, modelName) {
+            if (response.ok) return; // Todo verde
+
+            let errorBody;
+            try {
+                errorBody = await response.json();
+            } catch (e) {
+                errorBody = { error: { message: response.statusText } };
+            }
+
+            const msg = errorBody.error?.message || "Error desconocido";
+            const status = response.status;
+
+            // Clasificación de Errores
+            if (status === 400) throw new Error(`FATAL_400: Solicitud inválida (${msg})`);
+            if (status === 401 || status === 403) throw new Error(`FATAL_AUTH: API Key rechazada.`);
+            if (status === 404) throw new Error(`MODEL_404: El modelo ${modelName} no existe o fue retirado.`);
+            if (status === 429) throw new Error(`QUOTA_429: Cuota excedida en ${modelName}.`);
+            if (status >= 500) throw new Error(`SERVER_5xx: Error interno de Google (${status}).`);
+            
+            throw new Error(`HTTP_${status}: ${msg}`);
+        }
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const q = chatInput.value.trim();
+            if(!q) return;
+            addMsg('user', q);
+            chatInput.value = ''; chatBtn.disabled = true;
+            const lid = addMsg('ai', '...');
+            
+            let key = apiKeyInput.value.trim();
+            if (window.EXPORT_MODE) {
+                key = chatApiKey.value.trim();
+                if (!key) {
+                    document.getElementById(lid).innerText = "Error: Introduce una API Key válida en el campo del chat.";
+                    chatBtn.disabled = false;
+                    return;
+                }
+            }
+
+            try {
+                const contents = [
+                    { role: 'user', parts: [{ text: `Actúa como experto científico. Contexto del Paper: ${currentDocumentText.substring(0,30000)}. REGLA DE ORO: Si usas fórmulas matemáticas o unidades técnicas, usa SIEMPRE formato LaTeX encerrado en signos de dólar ($...$). Ejemplo: $\\alpha = 20$$.` }] },                    { role: 'model', parts: [{ text: "Entendido. Utilizaré este contexto para responder." }] },
+                    ...conversationHistory,
+                    { role: 'user', parts: [{ text: q + " (Responde técnico y conciso. Usa LaTeX estandar para fórmulas con DOBLE barra invertida en el JSON, ej: $\\\\rho$)" }] }
+                ];
+
+                const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ contents: contents })
+                });
+                
+                const d = await resp.json();
+                let responseText = d.candidates[0].content.parts[0].text;
+                
+                // NO MORE BLIND REPLACEMENTS. Trust prompt & Marked+KaTeX flow.
+                conversationHistory.push({ role: 'user', parts: [{ text: q }] });
+                conversationHistory.push({ role: 'model', parts: [{ text: responseText }] });
+
+                // Use Standard Render
+                renderContent(lid, responseText);
+                
+                setTimeout(() => { chatHistory.scrollTop = chatHistory.scrollHeight; }, 100);
+
+            } catch(e) { 
+                document.getElementById(lid).innerText = "Error de conexión con la API."; 
+            } finally { 
+                chatBtn.disabled = false; chatInput.focus(); 
+            }
+        }
+
+        function addMsg(role, text) {
+            const div = document.createElement('div');
+            const cls = role === 'user' ? "self-end bg-indigo-50 text-indigo-900 border-indigo-100 rounded-tr-none ml-12" : "self-start bg-white text-slate-700 border-2 border-slate-200 rounded-tl-none mr-12";
+            div.className = `${cls} p-4 rounded-2xl shadow-sm text-base font-medium max-w-[85%] text-justify mb-4`;
+            div.id = 'msg-'+Date.now();
+            // User message is plain text usually, but rendering it safe
+            div.innerText = text; // Initial set as text to avoid XSS if we were echoing html. For markdown we use renderContent later.
+            if (role === 'user') {
+                 // For user we can just show text, or render if they typed latex. Let's just show text for safety/simplicity or render?
+                 // Let's render it properly in case user typed math
+                 renderContent(div, text);
+            }
+            chatHistory.appendChild(div);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return div.id;
+        }
+
+        function toggleVisibility() { apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password'; }
+        function resetUI() { errorMsg.classList.add('hidden'); successReveal.classList.add('hidden'); successReveal.classList.remove('flex'); activityLog.innerHTML = ''; }
+        function showError(m) { errorMsg.innerText = m; errorMsg.classList.remove('hidden'); }
+        function resetApp() { 
+            dashboard.classList.add('hidden'); dashboard.classList.remove('flex'); 
+            inputZone.classList.remove('hidden'); activityLog.innerHTML = '';
+            fileInput.value = ""; currentDocumentText = ""; conversationHistory = [];
+            saveBtn.classList.add('hidden'); if(resetAppBtn) resetAppBtn.classList.add('hidden');
+            if (panZoomInstance) { panZoomInstance.destroy(); panZoomInstance = null; }
+            pendingMermaidCode = ""; mermaidError.classList.add('hidden');
+            // CAMBIO: Limpieza del Header
+            document.getElementById('paperMeta').classList.add('hidden');
+            document.getElementById('paperMeta').classList.remove('flex');
+            document.getElementById('paperDoi').classList.add('hidden'); // Asegurar ocultación del DOI
+            document.getElementById('paperDoi').classList.remove('flex');
+            
+            // Restaurar título placeholder (opcional, por estética)
+            const titleEl = document.getElementById('paperTitle');
+            titleEl.textContent = "Análisis inteligente de artículos científicos";
+            titleEl.classList.remove('text-indigo-900', 'font-bold');
+            titleEl.classList.add('text-slate-600');
+        }
+    </script>
+</body>
+</html>
