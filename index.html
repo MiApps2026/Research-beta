@@ -569,26 +569,104 @@
     </main>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js" defer></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" defer></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+    
     
     <script>
-        // ESTO SE EJECUTA SÍ O SÍ ANTES DE QUE NADIE INTENTE LEER UN PDF
-        // Al no tener 'async' ni 'defer', el navegador para aquí, configura esto, y sigue.
-        // Es la única forma 100% segura de evitar condiciones de carrera.
-        window.pdfjsLib = window['pdfjs-dist/build/pdf'];
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        console.log("✅ PDF Engine Ready & Secured");
-    </script>
+        // 1. CONFIGURACIÓN Y ESTADO
 
-    <script>
+        const TEXT_MODELS = [
+            "gemini-3-flash-preview", //probado
+            "gemini-2.5-flash-preview-09-2025",      //probado
+            "gemini-2.5-flash",         //probado
+            "gemini-2.5-flash-lite-preview-09-2025", //probado
+            "gemini-2.5-flash-lite",    //probado
+            "gemini-flash-lite-latest", //probado
+            "gemini-flash-latest"       //probado
+        ];
+
+        let currentDocumentText = "";
+        let pendingResultData = null;
+        let pendingMermaidCode = ""; 
+        let panZoomInstance = null;
+        let conversationHistory = [];               
+        let apiKeyInput, fileInput, dropArea, activityLog, statusIndicator, successReveal, dashboard, inputZone, errorMsg;
+        let mermaidLoading, mermaidChart, mermaidError, mermaidErrorCode;
+        let chatHistory, chatInput, chatBtn, chatForm, saveBtn, chatApiContainer, chatApiKey, resetAppBtn, regenDiagramBtn;
+        let uiSequenceTimer = 0; // El contador de tiempo
+
+
+        // 2. ORQUESTADOR DE ARRANQUE (Aquí ocurre la magia)
+        document.addEventListener('DOMContentLoaded', () => {
+        
+        if (typeof mermaid !== 'undefined') {
+            mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+        }
+
+        // A. Configuración CRÍTICA del PDF (Esto arregla tu Drop)
+        // Al usar 'defer', cuando llegamos aquí, window.pdfjsLib YA existe seguro.
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        // B. Inicializamos referencias
+        initDomRefs();
+
+        // C. Tus Listeners (Copiados de tu código original)
+        if (chatForm) chatForm.addEventListener('submit', handleChatSubmit);
+
+        if (fileInput && dropArea) {
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            ['dragenter', 'dragover'].forEach(e => dropArea.addEventListener(e, ev => { 
+                ev.preventDefault(); 
+                dropArea.classList.add('bg-indigo-50', 'border-indigo-500'); 
+            }));
+            
+            ['dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { 
+                ev.preventDefault(); 
+                dropArea.classList.remove('bg-indigo-50', 'border-indigo-500'); 
+            }));
+            
+            dropArea.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
+        }
+
+        // D. Lógica de Exportación (Tal cual la tenías)
+        if (window.EXPORT_MODE) {
+            currentDocumentText = window.EXPORT_CONTEXT;
+            pendingResultData = window.EXPORT_DATA;
+            pendingMermaidCode = window.EXPORT_MERMAID;
+            
+            if(inputZone) inputZone.classList.add('hidden');
+            if(document.getElementById('mainApiInput')) document.getElementById('mainApiInput').classList.add('hidden');
+            if(saveBtn) { saveBtn.classList.remove('flex'); saveBtn.classList.add('hidden'); }
+            if(resetAppBtn) resetAppBtn.classList.add('hidden');
+            if(regenDiagramBtn) regenDiagramBtn.classList.add('hidden');
+
+            if(chatApiContainer) {
+                chatApiContainer.classList.remove('hidden'); 
+                chatApiContainer.classList.add('flex');
+            }
+            
+            renderMermaidFromState();
+            log("success", "Informe cargado en modo lectura.");
+        } else {
+            const storedKey = localStorage.getItem('gemini_api_key');
+            if (storedKey && apiKeyInput) apiKeyInput.value = storedKey;
+            if (apiKeyInput) apiKeyInput.addEventListener('input', (e) => localStorage.setItem('gemini_api_key', e.target.value.trim()));
+        }
+
+    }); // <--- AQUÍ SE CIERRA LA ZONA 2
+
+        // ZONA 3. FUNCIONES:
 
         function validatePayload(data) {
             // 1. Integridad estructural básica
@@ -624,30 +702,6 @@
                 .trim();
         }
 
-        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
-
-        const TEXT_MODELS = [
-            "gemini-3-flash-preview", //probado
-            "gemini-2.5-flash-preview-09-2025",      //probado
-            "gemini-2.5-flash",         //probado
-            "gemini-2.5-flash-lite-preview-09-2025", //probado
-            "gemini-2.5-flash-lite",    //probado
-            "gemini-flash-lite-latest", //probado
-            "gemini-flash-latest"       //probado
-        ];
-
-        let currentDocumentText = "";
-        let pendingResultData = null;
-        let pendingMermaidCode = ""; 
-        let panZoomInstance = null;
-        let conversationHistory = []; 
-
-              
-        // Refs (Declaramos variables sin asignar para que sean globales)
-        let apiKeyInput, fileInput, dropArea, activityLog, statusIndicator, successReveal, dashboard, inputZone, errorMsg;
-        let mermaidLoading, mermaidChart, mermaidError, mermaidErrorCode;
-        let chatHistory, chatInput, chatBtn, chatForm, saveBtn, chatApiContainer, chatApiKey, resetAppBtn, regenDiagramBtn;
-        let uiSequenceTimer = 0; // El contador de tiempo
 
         // Función para conectar con el DOM una vez cargado
         function initDomRefs() {
@@ -682,61 +736,6 @@
             // Debug de arranque
             if(!chatForm) console.error("FATAL: chatForm no encontrado en el DOM");
         }
-
-        
-        // Init
-        window.addEventListener('load', () => {
-            // 1. Conectar referencias al DOM
-            initDomRefs();
-
-            // 2. Adjuntar listeners de CHAT
-            if (chatForm) {
-                chatForm.addEventListener('submit', handleChatSubmit);
-            }
-
-            // 3. Adjuntar listeners de ARCHIVO (Drag & Drop) - ¡AQUÍ ESTABA EL FALLO!
-            if (fileInput && dropArea) {
-                fileInput.addEventListener('change', handleFileSelect);
-                
-                ['dragenter', 'dragover'].forEach(e => dropArea.addEventListener(e, ev => { 
-                    ev.preventDefault(); 
-                    dropArea.classList.add('bg-indigo-50', 'border-indigo-500'); 
-                }));
-                
-                ['dragleave', 'drop'].forEach(e => dropArea.addEventListener(e, ev => { 
-                    ev.preventDefault(); 
-                    dropArea.classList.remove('bg-indigo-50', 'border-indigo-500'); 
-                }));
-                
-                dropArea.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
-            }
-            
-            // 4. Lógica de exportación vs normal
-            if (window.EXPORT_MODE) {
-                // ... (Mantén tu lógica de exportación igual) ...
-                currentDocumentText = window.EXPORT_CONTEXT;
-                pendingResultData = window.EXPORT_DATA;
-                pendingMermaidCode = window.EXPORT_MERMAID;
-                
-                if(inputZone) inputZone.classList.add('hidden');
-                if(document.getElementById('mainApiInput')) document.getElementById('mainApiInput').classList.add('hidden');
-                if(saveBtn) { saveBtn.classList.remove('flex'); saveBtn.classList.add('hidden'); }
-                if(resetAppBtn) resetAppBtn.classList.add('hidden');
-                if(regenDiagramBtn) regenDiagramBtn.classList.add('hidden');
-
-                if(chatApiContainer) {
-                    chatApiContainer.classList.remove('hidden'); 
-                    chatApiContainer.classList.add('flex');
-                }
-                
-                renderMermaidFromState();
-                log("success", "Informe cargado en modo lectura.");
-            } else {
-                const storedKey = localStorage.getItem('gemini_api_key');
-                if (storedKey && apiKeyInput) apiKeyInput.value = storedKey;
-                if (apiKeyInput) apiKeyInput.addEventListener('input', (e) => localStorage.setItem('gemini_api_key', e.target.value.trim()));
-            }
-        });
 
         // --- SIMPLIFIED RENDER FUNCTION ---
         // Just use standard Marked + KaTeX Auto-Render
@@ -777,7 +776,7 @@
             });
         }
 
-       function exportReport() {
+        function exportReport() {
             if (!pendingResultData) return;
 
             if (window.umami) {
@@ -853,7 +852,6 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
-
         
         function handleFileSelect(e) { handleFiles(e.target.files); }
 
@@ -948,9 +946,10 @@
         }
         function readTXT(f) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsText(f); }); }
         async function readDOCX(f) { const b = await f.arrayBuffer(); const r = await mammoth.extractRawText({ arrayBuffer: b }); return r.value; }
+        
         async function readPDF(f) {
             const b = await f.arrayBuffer();
-            const doc = await pdfjsLib.getDocument({ data: b }).promise;
+            const doc = await window.pdfjsLib.getDocument({ data: b }).promise;
             let txt = "";
             const limit = Math.min(doc.numPages, 30);
             for (let i=1; i<=limit; i++) {
@@ -1488,8 +1487,6 @@
             // 2. Incrementamos el tiempo para el SIGUIENTE mensaje (1.5 segundos)
             uiSequenceTimer += 1000;
         }
-
-
 
         // --- DECODIFICADOR DE ERRORES HTTP ---
         async function handleApiError(response, modelName) {
